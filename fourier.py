@@ -3,12 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 # from osgeo import gdal
 import rasterio as rio
-from scipy import ndimage, misc
+# from scipy import ndimage, misc
 from scipy.ndimage.filters import uniform_filter
 from scipy.ndimage import correlate
-from skimage.segmentation import slic
+from skimage import filters
+from skimage.segmentation import active_contour, felzenszwalb, slic
 # import glob
-# import os
+import os
 
 # importing from tutorial
 # https://towardsdatascience.com/image-processing-with-python-application-of-fourier-transformation-5a8584dc175b
@@ -32,91 +33,133 @@ print(f'Processing: {band}')
 # read geotiff with rasterio and mask no data
 dark_image = rio.open(band)
 relative = dark_image.read(1)
+out_meta = dark_image.meta
+out_transform = dark_image.transform
 nodata = dark_image.nodata
-relative = np.where(relative == nodata, 0, relative)
+# relative = np.where(relative == nodata, 0, relative)
 
-# gdal version
-# dark_image = gdal.Open(band)
-# relative = dark_image.GetRasterBand(1).ReadAsArray()
+# # gdal version
+# # dark_image = gdal.Open(band)
+# # relative = dark_image.GetRasterBand(1).ReadAsArray()
 
-print(f'\nRead image band: {band}')
+# print(f'\nRead image band: {band}')
 
-# forward fft
-relative_fft = np.fft.fftshift(np.fft.fft2(relative))
-magnitude = 20 * np.log(abs(relative_fft))
-# magnitude = np.fft.fft2(relative)
+# # forward fft
+# relative_fft = np.fft.fftshift(np.fft.fft2(relative))
+# magnitude = 20 * np.log(abs(relative_fft))
+# # magnitude = np.fft.fft2(relative)
 
-# gaussian fourier filter
-# gaussfourier = ndimage.fourier_gaussian(magnitude, sigma=4)
-# inverse = np.fft.ifft2(gaussfourier)
+# # gaussian fourier filter
+# # gaussfourier = ndimage.fourier_gaussian(magnitude, sigma=4)
+# # inverse = np.fft.ifft2(gaussfourier)
 
 
-# inverse fft
-to_inverse = relative_fft # being lazy -- to more easily change the inverse
-F = np.fft.ifftshift(to_inverse)
-# # f = np.fft.ifft2(F).real # could be useful in the future
-inverse = abs(np.fft.ifft2(F))
+# # inverse fft
+# to_inverse = relative_fft # being lazy -- to more easily change the inverse
+# F = np.fft.ifftshift(to_inverse)
+# # # f = np.fft.ifft2(F).real # could be useful in the future
+# inverse = abs(np.fft.ifft2(F))
 
-# difference between input and result
-check = np.subtract(relative, inverse)
+# # difference between input and result
+# check = np.subtract(relative, inverse)
 
-# plotting
-fig, ax = plt.subplots(1,3,figsize=(15,15))
-ax[0].imshow(relative, cmap='gray')
-ax[0].set_title('Original')
-ax[1].imshow(magnitude.real, cmap='gray')
-ax[1].set_title('Magnitude')
-ax[2].imshow(inverse, cmap='gray')
-ax[2].set_title('iFFT')
-plt.show()
+# # plotting
+# fig, ax = plt.subplots(1,3,figsize=(15,15))
+# ax[0].imshow(relative, cmap='gray')
+# ax[0].set_title('Original')
+# ax[1].imshow(magnitude.real, cmap='gray')
+# ax[1].set_title('Magnitude')
+# ax[2].imshow(inverse, cmap='gray')
+# ax[2].set_title('iFFT')
+# plt.show()
 
 
 # slope stuff
-
 
 def window_stdev(arr, radius):
     c1 = uniform_filter(arr, radius*2, mode='constant', origin=-radius)
     c2 = uniform_filter(arr*arr, radius*2, mode='constant', origin=-radius)
     return ((c2 - c1*c1)**.5)[:-radius*2+1,:-radius*2+1]
 
+# print(f'Relative shape: {relative.shape}')
+gradient = np.gradient(relative, axis=0).astype('float64')
+std = window_stdev(gradient, 3) * 500
+# print(f'Gradient shape: {gradient.shape}')
 
-print(f'Relative shape: {relative.shape}')
-gradient = np.gradient(relative, axis=0)
-std = window_stdev(gradient, 3)
-print(f'Gradient shape: {gradient.shape}')
+# std = np.array(std, dtype='float64')
+# print(f'Std type: {type(std)}')
+
+# threshold filter
+# threshold = filters.threshold_sauvola(std)
+# binary = (std > threshold*1)
+
+# snake
+# # Localising the circle's center at 220, 110
+# x1 = 200 + 100*np.cos(np.linspace(0, 2*np.pi, 500))
+# x2 = 100 + 100*np.sin(np.linspace(0, 2*np.pi, 500))
+ 
+# # Generating a circle based on x1, x2
+# snake = np.array([x1, x2]).T
+ 
+# # Computing the Active Contour for the given image
+# np_snake = active_contour(std, snake)
+
+felzensz = felzenszwalb(gradient, scale = 2, sigma=5, min_size=1000)
 
 # # plotting
-fig, ax = plt.subplots(1,3,figsize=(15,15))
-ax[0].imshow(relative, cmap='gray')
-ax[0].set_title('Original')
-ax[1].imshow(gradient, cmap='cool')
-ax[1].set_title('Gradient')
-ax[2].imshow(std, cmap='cool')
-ax[2].set_title('StDev')
+fig, ax = plt.subplots(2,2,figsize=(20,20))
+ax[0, 0].imshow(relative, cmap='gray')
+ax[0, 0].set_title('Original')
+ax[0, 1].imshow(gradient, cmap='cool')
+ax[0, 1].set_title('Gradient')
+ax[1, 0].imshow(std, cmap='cool')
+ax[1, 0].set_title('StDev')
+ax[1, 1].imshow(felzensz)
+ax[1, 1].set_title('Felzensz')
+# ax[1, 0].plot(np_snake[:, 0], np_snake[:, 1],'-b', lw=5)
+# ax[1, 1].imshow(binary)
+# ax[1, 1].set_title('Binary')
 plt.show()
 
-image = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                  [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
-                  [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
-                  [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
-                  [0, 0, 1, 1, 1, 0, 0, 1, 0, 0],
-                  [0, 0, 1, 1, 1, 0, 0, 1, 0, 0],
-                  [0, 0, 1, 1, 1, 0, 0, 1, 0, 0],
-                  [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
-                  [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
-                  [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
-                  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], np.uint8)
-# plt.imshow(image);
+# update spatial information
+out_meta.update({"driver": "GTiff",
+                  "height": felzensz.shape[0],
+                  "width": felzensz.shape[1],
+                  "transform": out_transform})
 
-imfilt = correlate(magnitude, image)
-plt.imshow(imfilt)
+# output raster name
+outraster_name = os.path.join(os.path.dirname(band), 'felzensz.tif')
 
-print(type(imfilt))
+masked = np.where(felzensz == 1, felzensz, relative)
+masked = np.where(felzensz == 1, nodata, relative)
 
-segment = slic(imfilt, n_segments=2, compactness=10)
-plt.imshow(segment)
+with rio.open(outraster_name, "w", **out_meta) as dest:
+    dest.write(masked, 1) # write array to raster
+    
+print(f'Output: {outraster_name}')
+
+# image = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#                   [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+#                   [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+#                   [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+#                   [0, 0, 1, 1, 1, 0, 0, 1, 0, 0],
+#                   [0, 0, 1, 1, 1, 0, 0, 1, 0, 0],
+#                   [0, 0, 1, 1, 1, 0, 0, 1, 0, 0],
+#                   [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+#                   [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+#                   [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+#                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], np.uint8)
+# # plt.imshow(image);
+
+# imfilt = correlate(magnitude, image)
+# plt.imshow(imfilt)
+
+# print(type(imfilt))
+
+# segment = slic(std, n_segments=10, compactness=10)
+# plt.imshow(segment)
 
 # code that might be useful later
 
