@@ -14,6 +14,6 @@ from skimage.segmentation import active_contour, felzenszwalb, slic
 class Segmentation:
     
     def felensz(self, gradient, scale, sigma, min_size):
-        felensz = felzenszwalb(gradient, scale = 2, sigma=5, min_size=1000)
+        felensz = felzenszwalb(gradient, scale = scale, sigma=sigma, min_size=min_size)
         
         return felensz

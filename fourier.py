@@ -7,6 +7,7 @@ import sys
 # import glob
 import os
 import numpy as np
+from scipy import fftpack
 # import matplotlib.pyplot as plt
 # from osgeo import gdal
 # import rasterio as rio
@@ -19,10 +20,10 @@ import numpy as np
 
 class Fourier:
     
-    def freqshifted(self, band):
+    def freqshifted(self, fft):
     
         # forward fft
-        fftshifted = np.fft.fftshift(np.fft.fft2(band))
+        fftshifted = np.fft.fftshift(fft)
         
         return fftshifted
     
@@ -33,7 +34,8 @@ class Fourier:
         return fft
     
     def magnitude_spectrum(self, band):
-        fftshifted = self.freqshifted(band)
+        fft = self.freq(band)
+        fftshifted = self.freqshifted(fft)
         magnitude = 20 * np.log(abs(fftshifted))
         # magnitude = np.fft.fft2(relative)
 
@@ -57,3 +59,14 @@ class Fourier:
         
         return inverseshifted
     
+    def fftpack(self, band):
+        
+        im_fft = fftpack.fft2(band.astype(float))
+        
+        return im_fft
+    
+    def ifftpack(self, band):
+        
+        im_fft = fftpack.ifft2(band)
+        
+        return im_fft

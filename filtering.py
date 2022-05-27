@@ -11,6 +11,9 @@ from scipy.ndimage.filters import uniform_filter
 from scipy import ndimage
 from skimage import filters
 
+# personal
+from fourier import Fourier
+
 
 class Filters:
     
@@ -47,5 +50,21 @@ class Filters:
     def uniform(self, band):
         
         pass
+        
+    def custom(self, im_fft2):
+        
+        keep_fraction = 0.1
+        
+        r, c = im_fft2.shape
+        
+        im_fft2[int(r*keep_fraction):int(r*(1-keep_fraction))] = 0
+
+        # Similarly with the columns:
+        im_fft2[:, int(c*keep_fraction):int(c*(1-keep_fraction))] = 0
+        
+        return im_fft2
+        
+        
+        
         
         
