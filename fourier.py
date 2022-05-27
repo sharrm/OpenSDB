@@ -19,29 +19,41 @@ import numpy as np
 
 class Fourier:
     
-    def forward(self, band):
+    def freqshifted(self, band):
     
         # forward fft
         fftshifted = np.fft.fftshift(np.fft.fft2(band))
         
         return fftshifted
     
+    def freq(self, band):
+        
+        fft = np.fft.fft2(band)
+        
+        return fft
+    
     def magnitude_spectrum(self, band):
-        fftshifted = self.forward(band)
+        fftshifted = self.freqshifted(band)
         magnitude = 20 * np.log(abs(fftshifted))
         # magnitude = np.fft.fft2(relative)
 
         return magnitude
 
-    def inverse(self, band):
+    def inverse(self, fftshifted):
         
-        fftshifted = self.forward(band)
-        
-        # inverse fft
-        inverse = np.fft.ifftshift(np.fft.ifft2(fftshifted))
+        # fftshifted = self.freqshifted(band)
+        inverse = np.fft.ifft2(fftshifted)
         # # f = np.fft.ifft2(F).real # could be useful in the future
         # real_inverse = abs(np.fft.ifft2(F))
-        real_inverse = abs(inverse)
         
-        return real_inverse
+        return inverse
+    
+    def inverse_shifted(self, fftshifted):
+        
+        # fftshifted = self.freqshifted(band)
+        inverseshifted = np.fft.ifft2(np.fft.ifftshift(fftshifted))
+        # # f = np.fft.ifft2(F).real # could be useful in the future
+        # real_inverse = abs(np.fft.ifft2(F))
+        
+        return inverseshifted
     

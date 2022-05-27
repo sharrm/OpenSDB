@@ -33,10 +33,16 @@ class Filters:
         
         return fftshifted
     
-    def fourier_ellipse(self, fftshifted, size):
-        fe_filtered = ndimage.fourier_ellipsoid(fftshifted, size=size)
+    def fourier_ellipse(self, fft, size):
+        fe_filtered = ndimage.fourier_ellipsoid(fft, size=size)
         
         return fe_filtered
+    
+    def fourier_gaussian(self, fft, sigma):
+        
+        fourier_gauss = ndimage.fourier_gaussian(fft, sigma=sigma)
+        
+        return fourier_gauss
     
     def uniform(self, band):
         
