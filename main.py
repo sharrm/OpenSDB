@@ -46,7 +46,7 @@ else:
 TF, outraster_name, blue_image, ratioBlueArrayOutput, lnBlueArrayOutput, ratioImage = sdb.pSDBgreen(maskedBlue, 
                                                                                          maskedGreen, 
                                                                                          maskSHP, 
-                                                                                         rol_name='anegada_ratioLogs4')
+                                                                                         rol_name='anegada_ratioLogs01')
 
 # returns boolean and the pSDB location
 # if green_SDB_output[0

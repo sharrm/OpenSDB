@@ -48,7 +48,6 @@ def mask_imagery(red, green, blue, in_shp):
         if '492' in band or 'B2' in band: # blue wavelength (492nm)
             outraster_name = os.path.join(os.path.dirname(band), 'masked_' + os.path.basename(band)[-7:-4] + '.tif')
             masked_rasters['blue'] = outraster_name
-            print(out_image)
         elif '560' in band or 'B3' in band: # green wavelength (560nm)
             outraster_name = os.path.join(os.path.dirname(band), 'masked_' + os.path.basename(band)[-7:-4] + '.tif')
             masked_rasters['green'] = outraster_name
@@ -81,9 +80,6 @@ def pSDBgreen (blue, green, in_shp, rol_name):
     # increase band values by factor of 1,000
     ratioBlueArrayOutput = blue_image * 1000.0
     ratioGreenArrayOutput = green_image * 1000.0
-    
-    print(type(ratioBlueArrayOutput))
-    print(ratioBlueArrayOutput)
 
     # calculate natural log of each band
     lnBlueArrayOutput = np.log(ratioBlueArrayOutput)

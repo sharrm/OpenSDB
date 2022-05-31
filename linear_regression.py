@@ -32,16 +32,14 @@ def slr(in_raster, icesat2, color):
     r2 = np.around(reg.score(X, y), decimals=3)
     b1 = np.around(reg.coef_, decimals=3)
     b0 = np.around(reg.intercept_, decimals=3)
-    print(f"The r-squared value is: {r2}")
+    print(f"\nThe r-squared value is: {r2}")
     print(f"The m0 value is: {b0}")
     print(f"The m1 value is: {b1}")
 
     pts['y_hat'] = reg.predict(X)
 
-    # with pd.ExcelWriter(r'P:\SDB\Anegada\pandas.xlsx') as writer:
-    #     pts.to_excel(writer)
-        
-    print(pts)    
+    with pd.ExcelWriter(os.path.join(os.path.dirname(icesat2), 'regression_results.xlsx')) as writer:
+        pts.to_excel(writer)
 
     # plt.scatter(pts.Z, pts.y_hat, alpha=0.5)
     ax = plt.gca()
