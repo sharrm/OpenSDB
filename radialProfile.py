@@ -1,5 +1,5 @@
 import numpy as np
-from scipy import fftpack
+from scipy import fftpack, integrate
 # import pyfits
 import pylab as py
 import rasterio
@@ -81,34 +81,73 @@ def PSD(rasters):
         # py.clf()
         # py.imshow( np.log10( psd2D ))
         
-        py.semilogy(psd1D, label = os.path.basename(band)[:-4])
-        py.xlabel('Spatial Frequency')
-        py.ylabel('Power Spectrum')
-        py.title('Radially Averaged PSD')
-        # py.title(os.path.basename(band)[:-4])
-        py.legend(loc='upper right')
+        bandname = os.path.basename(band)[:-4]
+        # py.title(bandname)
+        # py.legend(loc='upper right')
         
         # threshold = np.median(psd2D)
         # py.imshow(psd2D, cmap=py.cm.hot, interpolation='none', vmax=threshold)
         
+        yrange = psd1D[150:]
+        xrange = np.arange(150, 150 + len(yrange), 1)
+        trapz = np.trapz(yrange, xrange)
+        print(f'Energy {bandname}: {trapz:.3f}')
+        
+        py.semilogy(psd1D, label = bandname)
+        # py.semilogy(yrange, label = bandname)
+        py.xlabel('Spatial Frequency')
+        py.ylabel('Power Spectrum')
+        py.title('Radially Averaged PSD')
+        
+        
+    handles, labels = py.gca().get_legend_handles_labels()
+    order = [2, 0, 3, 1, 5, 4]
     
-    # handles = ['Noiseless', 'SomeNoise', 'AlmostHalf', 'MoreHalf', 'AlmostFull',  'Full']
-    # order = [1, 2, 3, 4, 5, 6]
+    h = [handles[i] for i in order]
+    l = [labels[i] for i in order]
     
-    
-    # py.savefig(os.path.join(r'P:\SDB\Test_Files\Noise_Files\Figures', 'RAPSD.png'), dpi=300)
-    
+    py.legend(h, l, loc='upper right')
+    # py.savefig(os.path.join(r'U:\ce567\sharrm\Final\Figures', 'RAPSD.png'), dpi=300)
+    py.grid()
     py.show()
+
     py.clf()
         
-    return psd1D, psd2D, img
+    return psd1D
 
 rasters = []
 
 for tif in glob.glob(r'P:\SDB\Test_Files\Noise_Files\*.tif', recursive=False):
     rasters.append(tif)
 
-psd1d, psd2d, img = PSD(rasters)
+rasters.sort()
+
+psd1d = PSD(rasters)
+
+## integration 
+# X = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.85]
+# rA = -1 / np.array([-.0053, -.0052, -.0050, -.0045, -.0040, -.0033, -.0025, -.0018, -.00125, -.0010])
+# py.plot(X, rA)
+# py.show()
+# Int = np.trapz(rA, X)
+# print(f'Trapz: {Int}')
+
+# this works same as in matlab
+# test = psd1d[150:]
+# arange = np.arange(150, 150 + len(test), 1)
+# print(len(test))
+
+# trapz = np.trapz(test, arange)
+# py.plot(arange, test)
+# py.show()
+
+# print(test)
+# print(arange)
+
+# print(f'Trapz: {trapz}')
+
+
+
 
 # threshold = np.mean(psd2d)
 
