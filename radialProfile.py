@@ -47,82 +47,85 @@ def azimuthalAverage(image, center=None):
 
     return radial_prof
 
-def PSD(rasters):   
+def PSD(img):    # rasters
     # image = pyfits.getdata(‘myimage.fits’)
     
-    for band in rasters:
+    # for band in rasters:
               
-        # Take the fourier transform of the image.
-        img = rasterio.open(band)
-        img = img.read(1)
-        
-        img = np.pad(img, ((1,0),(0,1)), 'constant')
-        
-        img[img == -9999] = 0
-        
-        F1 = fftpack.fft2(img)
-        
-        # Now shift the quadrants around so that low spatial frequencies are in
-        # the center of the 2D fourier transformed image.
-        F2 = fftpack.fftshift( F1 )
-        
-        # Calculate a 2D power spectrum
-        psd2D = np.abs( F2 )**2
-        
-        # Calculate the azimuthally averaged 1D power spectrum
-        psd1D = azimuthalAverage(psd2D)
-        
-        # Now plot up both
-        # py.figure(1)
-        # py.clf()
-        # py.imshow( np.log10( img ), cmap=py.cm.Greys)
-        
-        # py.figure(2)
-        # py.clf()
-        # py.imshow( np.log10( psd2D ))
-        
-        bandname = os.path.basename(band)[:-4]
-        # py.title(bandname)
-        # py.legend(loc='upper right')
-        
-        # threshold = np.median(psd2D)
-        # py.imshow(psd2D, cmap=py.cm.hot, interpolation='none', vmax=threshold)
-        
-        yrange = psd1D[150:]
-        xrange = np.arange(150, 150 + len(yrange), 1)
-        trapz = np.trapz(yrange, xrange)
-        print(f'Energy {bandname}: {trapz:.3f}')
-        
-        py.semilogy(psd1D, label = bandname)
-        # py.semilogy(yrange, label = bandname)
-        py.xlabel('Spatial Frequency')
-        py.ylabel('Power Spectrum')
-        py.title('Radially Averaged PSD')
-        
-        
-    handles, labels = py.gca().get_legend_handles_labels()
-    order = [2, 0, 3, 1, 5, 4]
+    # Take the fourier transform of the image.
+    # img = rasterio.open(band)
+    # img = img.read(1)
     
-    h = [handles[i] for i in order]
-    l = [labels[i] for i in order]
+    # img = np.pad(img, ((1,1),(1,1)), 'constant')
     
-    py.legend(h, l, loc='upper right')
-    # py.savefig(os.path.join(r'U:\ce567\sharrm\Final\Figures', 'RAPSD.png'), dpi=300)
-    py.grid()
-    py.show()
+    # img[img == -9999] = 0
+    
+    F1 = fftpack.fft2(img)
+    
+    # Now shift the quadrants around so that low spatial frequencies are in
+    # the center of the 2D fourier transformed image.
+    F2 = fftpack.fftshift( F1 )
+    
+    # Calculate a 2D power spectrum
+    psd2D = np.abs( F2 )**2
+    
+    # Calculate the azimuthally averaged 1D power spectrum
+    psd1D = azimuthalAverage(psd2D)
+    
+    # Now plot up both
+    # py.figure(1)
+    # py.clf()
+    # py.imshow( np.log10( img ), cmap=py.cm.Greys)
+    
+    # py.figure(2)
+    # py.clf()
+    # py.imshow( np.log10( psd2D ))
+    
+    # bandname = os.path.basename(band)[:-4]
+    # py.title(bandname)
+    # py.legend(loc='upper right')
+    
+    # threshold = np.median(psd2D)
+    # py.imshow(psd2D, cmap=py.cm.hot, interpolation='none', vmax=threshold)
+    
+    # yrange = psd1D[50:]
+    # xrange = np.arange(50, 50 + len(yrange), 1)
+    yrange = psd1D[:]
+    xrange = np.arange(0, len(yrange), 1)
 
-    py.clf()
+    trapz = np.trapz(yrange, xrange)
+    # print(f'Energy {band}: {trapz:.3f}')
         
-    return psd1D
+        # py.semilogy(psd1D, label = bandname)
+        # # py.semilogy(yrange, label = bandname)
+        # py.xlabel('Spatial Frequency')
+        # py.ylabel('Power Spectrum')
+        # py.title('Radially Averaged PSD')
+        
+    # handles, labels = py.gca().get_legend_handles_labels()
+    # # order = [2, 0, 3, 1, 5, 4]
+    # order = [3, 2, 1, 0]
+    
+    # h = [handles[i] for i in order]
+    # l = [labels[i] for i in order]
+    
+    # py.legend(h, l, loc='upper right')
+    # py.savefig(os.path.join(r'U:\ce567\sharrm\Final\Figures', 'SamplesRAPSD.png'), dpi=300)
+    # py.grid()
+    # py.show()
 
-rasters = []
+    # py.clf()
+        
+    return trapz
 
-for tif in glob.glob(r'P:\SDB\Test_Files\Noise_Files\*.tif', recursive=False):
-    rasters.append(tif)
+# rasters = []
 
-rasters.sort()
+# for tif in glob.glob(r'P:\SDB\Test_Files\Samples\Rasters\*.tif', recursive=False):
+#     rasters.append(tif)
 
-psd1d = PSD(rasters)
+# rasters.sort()
+
+# psd1d, psd2d, img = PSD(rasters)
 
 ## integration 
 # X = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.85]
